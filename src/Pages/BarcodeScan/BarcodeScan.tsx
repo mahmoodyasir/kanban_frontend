@@ -9,10 +9,12 @@ import type { snackBarDataType, TProduct } from '../../Utils/utils';
 import { getAllProduct, insertProduct } from '../../ApiGateways/product';
 import GenericTable from '../../Components/GenericTable/GenericTable';
 import GlobalSnackbar from '../../Components/GlobalSnackbar/GlobalSnackbar';
+import { useLocation } from 'react-router-dom';
 
 const BarcodeScan = () => {
     const videoRef = useRef<HTMLVideoElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const location = useLocation();
     const [barcode, setBarcode] = useState<string>('');
     const [error, setError] = useState<string>('');
     const [scanning, setScanning] = useState<boolean>(true);
@@ -45,9 +47,11 @@ const BarcodeScan = () => {
     const controls = useRef<IScannerControls | null>(null);
 
     useEffect(() => {
+        let cancelled = false;
+
         const startScanner = async () => {
             try {
-                if (barcode === '') {
+                if (barcode === '' && !cancelled) {
                     const devices = await BrowserMultiFormatReader.listVideoInputDevices();
                     if (devices.length === 0) {
                         setError('No camera devices found');
@@ -58,6 +62,8 @@ const BarcodeScan = () => {
                         devices[0].deviceId,
                         videoRef.current!,
                         (result, err) => {
+                            if (cancelled) return;
+
                             if (result && !isScanned.current) {
                                 const text = result.getText();
                                 if (/^\d{8,14}$/.test(text)) {
@@ -69,15 +75,12 @@ const BarcodeScan = () => {
                                 }
                             }
 
-                            if (err && !(err.name === 'NotFoundException')) {
-                                console.error(err);
+                            if (err && err.name !== 'NotFoundException') {
                                 setError('Error scanning barcode');
-                                console.log("Am here")
                             }
                         }
                     );
                 }
-
             } catch (err) {
                 console.error(err);
                 setError('Failed to start scanner');
@@ -90,24 +93,38 @@ const BarcodeScan = () => {
         }
 
         return () => {
-            try {
-                controls.current?.stop();
-            } catch (err) {
-                console.warn('Cleanup failed', err);
+            cancelled = true;
+            controls.current?.stop();
+            const stream = videoRef.current?.srcObject as MediaStream;
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+                videoRef.current!.srcObject = null;
             }
         };
     }, [scanning]);
 
 
+
     useEffect(() => {
         return () => {
             try {
+                console.log("Cleaning up scanner...");
+
+                // Stop ZXing scanner
                 controls.current?.stop();
+
+                // Stop the media tracks (camera)
+                const stream = videoRef.current?.srcObject as MediaStream;
+                if (stream) {
+                    stream.getTracks().forEach(track => track.stop());
+                    videoRef.current!.srcObject = null;
+                }
+
             } catch (err) {
-                console.warn('Cleanup on route change failed', err);
+                console.warn('Scanner cleanup failed on route change', err);
             }
         };
-    }, []);
+    }, [location.pathname]);
 
     useEffect(() => {
         getAllProduct(

@@ -1,10 +1,13 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { getAllProduct, updateProductCategory } from "../../ApiGateways/product";
 import type { TProduct } from "../../Utils/utils";
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import { Button, Chip, Dialog, DialogContent, DialogTitle, Divider, TextField } from "@mui/material";
+import { useLocation } from "react-router-dom";
 
 const AssignCategory = () => {
+    const location = useLocation();
+    const hasReloaded = useRef(false);
     const [uncategorized, setUncategorized] = useState<TProduct[]>([]);
     const [categorized, setCategorized] = useState<Record<string, TProduct[]>>({});
     const [categories, setCategories] = useState<string[]>([]);
@@ -14,6 +17,20 @@ const AssignCategory = () => {
     const [reset, setReset] = useState(false);
     const [selectOrText, setSelectOrText] = useState(true);
     const NEW_CATEGORY_PLACEHOLDER = "NewCategoryPlaceholder";
+
+    useEffect(() => {
+        const hasReloaded = sessionStorage.getItem('assign-category-reloaded');
+
+        if (!hasReloaded) {
+            sessionStorage.setItem('assign-category-reloaded', 'true');
+            window.location.reload();
+        }
+
+
+        return () => {
+            sessionStorage.removeItem('assign-category-reloaded');
+        };
+    }, []);
 
     useEffect(() => {
         getAllProduct(1, 100, "", "", true,

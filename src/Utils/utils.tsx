@@ -11,6 +11,7 @@ export type TProduct = {
     barcode: string;
     description: string;
     category: string;
+    createdAt: string | number | Date;
 }
 
 export type snackBarDataType = {
