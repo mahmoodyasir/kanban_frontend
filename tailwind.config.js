@@ -9,7 +9,7 @@ export default {
     extend: {
       fontFamily: {
         alegreya: ['Alegreya', 'serif'],
-      }
+      },
     },
   },
   plugins: [],

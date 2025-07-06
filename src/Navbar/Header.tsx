@@ -1,7 +1,10 @@
-import { AppBar, Avatar, Box, Button, Container, IconButton, Menu, MenuItem, Toolbar, Tooltip, Typography } from "@mui/material";
+import { AppBar, Avatar, Box, Button, Container, Drawer, IconButton, List, ListItemButton, ListItemIcon, ListItemText, Menu, MenuItem, Toolbar, Tooltip, Typography } from "@mui/material";
 import { useState } from "react";
 import MenuIcon from '@mui/icons-material/Menu';
 import logo from '../static/images/board.png'
+import { Dashboard, QrCode2Outlined } from "@mui/icons-material";
+import CategoryIcon from '@mui/icons-material/Category';
+import { useNavigate } from "react-router-dom";
 
 
 const pages = [''];
@@ -10,18 +13,20 @@ const settings = ['Logout'];
 
 const Header = () => {
 
-    const [anchorElNav, setAnchorElNav] = useState<null | HTMLElement>(null);
+    const [isMenu, setIsMenu] = useState(false);
     const [anchorElUser, setAnchorElUser] = useState<null | HTMLElement>(null);
+    const navigate = useNavigate();
 
-    const handleOpenNavMenu = (event: React.MouseEvent<HTMLElement>) => {
-        setAnchorElNav(event.currentTarget);
-    };
+
+    const menuItems = [
+        { text: 'Dashboard', icon: <Dashboard />, link: '/' },
+        { text: 'Barcode Scan', icon: <QrCode2Outlined />, link: '/barcode_scan' },
+        { text: 'Assign Product Category', icon: <CategoryIcon />, link: '/asign_category' },
+    ];
+
+
     const handleOpenUserMenu = (event: React.MouseEvent<HTMLElement>) => {
         setAnchorElUser(event.currentTarget);
-    };
-
-    const handleCloseNavMenu = () => {
-        setAnchorElNav(null);
     };
 
     const handleCloseUserMenu = () => {
@@ -58,12 +63,34 @@ const Header = () => {
                             aria-label="account of current user"
                             aria-controls="menu-appbar"
                             aria-haspopup="true"
-                            onClick={handleOpenNavMenu}
+                            onClick={() => setIsMenu(true)}
                             color="inherit"
                         >
                             <MenuIcon />
                         </IconButton>
-                        <Menu
+
+                        <Drawer anchor="left" open={isMenu} onClose={() => setIsMenu(false)}>
+                            <section style={{ height: "3.5rem", backgroundColor: "rgb(255 251 235)" }}>
+                                {/* <Typography style={{ color: "black", padding: "15px" }}>
+                                    {" "}
+                                    Hello, {user.email}{" "}
+                                </Typography> */}
+                            </section>
+                            <List>
+
+                                {menuItems?.map((item, i) => (
+                                    <ListItemButton
+                                        onClick={() => [navigate(item?.link), setIsMenu(false)]}
+                                        key={i}
+                                    >
+                                        {/* HERE */}
+                                        <ListItemIcon>{item?.icon}</ListItemIcon>
+                                        <ListItemText>{item?.text}</ListItemText>
+                                    </ListItemButton>
+                                ))}
+                            </List>
+                        </Drawer>
+                        {/* <Menu
                             id="menu-appbar"
                             anchorEl={anchorElNav}
                             anchorOrigin={{
@@ -84,7 +111,7 @@ const Header = () => {
                                     <Typography  sx={{ textAlign: 'center' }}>{page}</Typography>
                                 </MenuItem>
                             ))}
-                        </Menu>
+                        </Menu> */}
                     </Box>
 
                     <Typography sx={{ display: { xs: 'flex', md: 'none' }, mr: 1 }}>
@@ -113,8 +140,8 @@ const Header = () => {
                             <Button
                                 className=" text-blue-500 text-base"
                                 key={page}
-                                onClick={handleCloseNavMenu}
-                                sx={{ my: 2,  display: 'block' }}
+                                onClick={() => setIsMenu(false)}
+                                sx={{ my: 2, display: 'block' }}
                             >
                                 {page}
                             </Button>

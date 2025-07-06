@@ -66,7 +66,7 @@ const UserLayout = () => {
                 </Drawer> */}
 
                 {/* Sidebar for Desktop */}
-                <aside className="hidden md:block w-64 bg-white shadow-lg">
+                <aside className="hidden [@media(min-width:900px)]:block w-64 bg-white shadow-lg">
                     {sidebarContent}
                     <Button className="w-full text-black" onClick={() => handleLogOut()}>
                         <ListItem className=" text-red-700">
